@@ -1,0 +1,188 @@
+import speech_recognition as sr
+import pyttsx3
+import screen_brightness_control as sbc
+import os
+import subprocess
+import time
+
+# تنظیمات اولیه برای تبدیل متن به گفتار
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)  # سرعت گفتار
+
+
+def speak(text):
+    """تبدیل متن به گفتار"""
+    print(f"دستیار: {text}")
+    engine.say(text)
+    engine.runAndWait()
+
+
+def recognize_speech():
+    """تشخیص گفتار کاربر"""
+    recognizer = sr.Recognizer()
+
+    with sr.Microphone() as source:
+        print("در حال گوش دادن...")
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source, timeout=7)
+
+    try:
+        command = recognizer.recognize_google(audio, language="en-US")
+        print(f"شما: {command}")
+        return command.lower()
+    except sr.UnknownValueError:
+        return ""
+    except sr.RequestError:
+        speak("خطا در اتصال به سرویس تشخیص گفتار")
+        return ""
+
+
+def open_this_pc():
+    """باز کردن This PC (این کامپیوتر) در ویندوز"""
+    try:
+        subprocess.Popen('explorer shell:MyComputerFolder', shell=True)
+        speak("پنجره This PC باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن This PC")
+        print(f"Error: {e}")
+
+
+def open_recycle_bin():
+    """باز کردن Recycle Bin (سطل بازیافت) در ویندوز"""
+    try:
+        subprocess.Popen('explorer shell:RecycleBinFolder', shell=True)
+        speak("سطل بازیافت باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن سطل بازیافت")
+        print(f"Error: {e}")
+
+
+def open_word():
+    """باز کردن Microsoft Word"""
+    try:
+        subprocess.Popen('start winword', shell=True)
+        speak("مایکروسافت ورد باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن ورد")
+        print(f"Error: {e}")
+
+
+def open_excel():
+    """باز کردن Microsoft Excel"""
+    try:
+        subprocess.Popen('start excel', shell=True)
+        speak("مایکروسافت اکسل باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن اکسل")
+        print(f"Error: {e}")
+
+
+def open_powerpoint():
+    """باز کردن Microsoft PowerPoint"""
+    try:
+        subprocess.Popen('start powerpnt', shell=True)
+        speak("مایکروسافت پاورپوینت باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن پاورپوینت")
+        print(f"Error: {e}")
+
+
+def open_winrar():
+    """باز کردن WinRAR"""
+    try:
+        subprocess.Popen('start winrar', shell=True)
+        speak("وینرار باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن وینرار")
+        print(f"Error: {e}")
+
+
+def open_acrobat():
+    """باز کردن Adobe Acrobat"""
+    try:
+        subprocess.Popen('start acrobat', shell=True)
+        speak("ادوب آکروبات باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن آکروبات")
+        print(f"Error: {e}")
+
+
+def open_edge():
+    """باز کردن Microsoft Edge"""
+    try:
+        subprocess.Popen('start msedge', shell=True)
+        speak("مایکروسافت اج باز شد")
+    except Exception as e:
+        speak("خطا در باز کردن مرورگر اج")
+        print(f"Error: {e}")
+
+
+def execute_command(command):
+    """اجرای دستورات شناسایی شده"""
+    command = command.lower()
+
+    # دستورات کنترل نور
+    if "turn the lights off" in command or "turn off the lights" in command:
+        sbc.set_brightness(0)
+        speak("نور صفحه به حداقل تنظیم شد")
+        return True
+
+    elif "turn the lights on" in command or "turn on the lights" in command:
+        sbc.set_brightness(100)
+        speak("نور صفحه به حداکثر تنظیم شد")
+        return True
+
+    # دستورات سیستم
+    elif "shut it down" in command:
+        speak("سیستم در حال خاموش شدن است")
+        os.system("shutdown /s /t 1")
+        return False
+
+    # دستورات باز کردن برنامه‌ها
+    elif "open this pc" in command:
+        open_this_pc()
+        return True
+
+    elif "open recycle bin" in command or "open trash" in command:
+        open_recycle_bin()
+        return True
+
+    elif "open word" in command:
+        open_word()
+        return True
+
+    elif "open excel" in command:
+        open_excel()
+        return True
+
+    elif "open powerpoint" in command or "open ppt" in command:
+        open_powerpoint()
+        return True
+
+    elif "open winrar" in command:
+        open_winrar()
+        return True
+
+    elif "open adobe acrobat" in command or "open acrobat" in command:
+        open_acrobat()
+        return True
+
+    elif "open microsoft edge" in command or "open edge" in command:
+        open_edge()
+        return True
+
+    return True
+
+
+# شروع اصلی برنامه
+if __name__ == "__main__":
+    speak("دستیار صوتی فعال است. دستور بدهید")
+
+    running = True
+    while running:
+        command = recognize_speech()
+
+        if command:
+            running = execute_command(command)
+        else:
+            speak("دستور شما تشخیص داده نشد")
